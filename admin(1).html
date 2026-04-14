@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Music League — Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0d0c;
+    --surface: #1a1916;
+    --surface2: #242220;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --gold: #c9a84c;
+    --gold-light: #e2c47a;
+    --gold-dim: rgba(201,168,76,0.15);
+    --text: #f0ece4;
+    --text-muted: #9e9a92;
+    --text-dim: #706b65;
+    --danger: #e05a5a;
+    --danger-bg: rgba(224,90,90,0.1);
+    --success: #6dbe8a;
+    --radius: 6px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3rem 1rem 5rem;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 50% -20%, rgba(201,168,76,0.07) 0%, transparent 70%),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.015) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.015) 40px);
+  }
+
+  .page { width: 100%; max-width: 640px; }
+
+  header { text-align: center; margin-bottom: 2.5rem; }
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 14px;
+    font-weight: 500;
+  }
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(26px, 5vw, 36px);
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+  h1 em { font-style: italic; color: var(--gold-light); }
+  .rule { width: 48px; height: 1px; background: var(--gold); opacity: 0.4; margin: 1.25rem auto; }
+  .sub { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
+  /* toolbar */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .count-badge {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .count-badge strong {
+    color: var(--gold-light);
+    font-weight: 500;
+  }
+  .toolbar-btns {
+    display: flex;
+    gap: 8px;
+  }
+  .btn-sm {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: transparent;
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .btn-sm:hover { background: var(--surface2); color: var(--text); border-color: rgba(255,255,255,0.2); }
+  .btn-sm svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+  /* states */
+  .state {
+    text-align: center;
+    padding: 4rem 1rem;
+  }
+  .state-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+  .state-text {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+  .state-error {
+    color: var(--danger);
+    background: var(--danger-bg);
+    border: 0.5px solid rgba(224,90,90,0.25);
+    border-radius: var(--radius);
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* spinner */
+  .spinner {
+    width: 28px; height: 28px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 14px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* submissions grid */
+  .submissions { display: flex; flex-direction: column; gap: 12px; }
+
+  .sub-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border2);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    transition: border-color 0.2s;
+  }
+  .sub-card:hover { border-color: rgba(255,255,255,0.2); }
+
+  .sub-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .sub-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .sub-time {
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    margin-left: 12px;
+  }
+
+  .sub-cats { list-style: none; }
+  .sub-cats li {
+    font-size: 13px;
+    color: var(--text-muted);
+    padding: 4px 0;
+    border-bottom: 0.5px solid var(--border);
+    line-height: 1.5;
+  }
+  .sub-cats li:last-child { border-bottom: none; }
+  .sub-cats li em { color: var(--text); font-style: italic; }
+  .sub-cats .cat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 12px;
+    color: var(--gold);
+    opacity: 0.6;
+    margin-right: 6px;
+  }
+
+  /* all categories flattened view */
+  .flat-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .flat-item {
+    background: var(--surface);
+    padding: 10px 16px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+  }
+  .flat-item:first-child { border-radius: 10px 10px 0 0; }
+  .flat-item:last-child { border-radius: 0 0 10px 10px; }
+  .flat-item:only-child { border-radius: 10px; }
+  .flat-cat {
+    color: var(--text);
+    font-style: italic;
+  }
+  .flat-by {
+    color: var(--text-dim);
+    white-space: nowrap;
+    font-size: 12px;
+  }
+
+  /* view toggle */
+  .view-toggle {
+    display: flex;
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .view-toggle button {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .view-toggle button:not(:last-child) { border-right: 0.5px solid var(--border2); }
+  .view-toggle button.active { background: var(--gold-dim); color: var(--gold-light); }
+  .view-toggle button:hover:not(.active) { background: var(--surface2); color: var(--text-muted); }
+
+  footer { margin-top: 2.5rem; text-align: center; font-size: 12px; color: var(--text-dim); letter-spacing: 0.05em; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <p class="eyebrow">Music League</p>
+    <h1>All <em>submissions</em></h1>
+    <div class="rule"></div>
+    <p class="sub">Category nominations collected this round.</p>
+  </header>
+
+  <div class="toolbar">
+    <span class="count-badge" id="count-badge"></span>
+    <div class="toolbar-btns">
+      <div class="view-toggle">
+        <button class="active" id="btn-by-person" onclick="setView('person')">By person</button>
+        <button id="btn-flat" onclick="setView('flat')">All categories</button>
+      </div>
+      <button class="btn-sm" onclick="loadData()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+        Refresh
+      </button>
+      <button class="btn-sm" id="export-btn" onclick="exportCSV()" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        CSV
+      </button>
+    </div>
+  </div>
+
+  <div id="content">
+    <div class="state">
+      <div class="spinner"></div>
+      <p class="state-text">Loading submissions…</p>
+    </div>
+  </div>
+
+  <footer>Music League &mdash; Admin Dashboard</footer>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW
+   (same URL as in index.html)
+   ═══════════════════════════════════════════════════════════════ */
+const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+
+let submissions = [];
+let currentView = 'person';
+
+async function loadData() {
+  const content = document.getElementById('content');
+  content.innerHTML = '<div class="state"><div class="spinner"></div><p class="state-text">Loading submissions…</p></div>';
+  document.getElementById('count-badge').textContent = '';
+  document.getElementById('export-btn').style.display = 'none';
+
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    content.innerHTML = '<div class="state"><div class="state-error">No Apps Script URL configured. Open admin.html and set the <code>SCRIPT_URL</code> variable.</div></div>';
+    return;
+  }
+
+  try {
+    const res = await fetch(SCRIPT_URL);
+    const data = await res.json();
+
+    if (!data.success) throw new Error(data.error || 'Unknown error');
+
+    submissions = data.submissions || [];
+    render();
+  } catch (err) {
+    content.innerHTML = '<div class="state"><div class="state-error">Failed to load submissions: ' + escapeHtml(err.message) + '</div></div>';
+  }
+}
+
+function render() {
+  const content = document.getElementById('content');
+  const badge = document.getElementById('count-badge');
+  const exportBtn = document.getElementById('export-btn');
+
+  if (!submissions.length) {
+    content.innerHTML = '<div class="state"><div class="state-icon">∅</div><p class="state-text">No submissions yet. Share the form link and check back later.</p></div>';
+    badge.textContent = '';
+    exportBtn.style.display = 'none';
+    return;
+  }
+
+  badge.innerHTML = '<strong>' + submissions.length + '</strong> submission' + (submissions.length !== 1 ? 's' : '');
+  exportBtn.style.display = '';
+
+  if (currentView === 'person') {
+    renderByPerson(content);
+  } else {
+    renderFlat(content);
+  }
+}
+
+function renderByPerson(container) {
+  const nums = ['I', 'II', 'III', 'IV'];
+  const html = submissions.map(s => {
+    const time = formatTime(s.timestamp);
+    const cats = s.categories.map((c, i) =>
+      '<li><span class="cat-num">' + nums[i] + '</span>Songs that… <em>' + escapeHtml(c) + '</em></li>'
+    ).join('');
+    return '<div class="sub-card">' +
+      '<div class="sub-header">' +
+        '<span class="sub-name">' + escapeHtml(s.name) + '</span>' +
+        '<span class="sub-time">' + time + '</span>' +
+      '</div>' +
+      '<ul class="sub-cats">' + cats + '</ul>' +
+    '</div>';
+  }).join('');
+  container.innerHTML = '<div class="submissions">' + html + '</div>';
+}
+
+function renderFlat(container) {
+  // collect all categories, shuffle-safe with attribution
+  const all = [];
+  submissions.forEach(s => {
+    s.categories.forEach(c => {
+      if (c) all.push({ cat: c, name: s.name });
+    });
+  });
+  // sort alphabetically by category text
+  all.sort((a, b) => a.cat.localeCompare(b.cat));
+
+  const html = all.map(item =>
+    '<div class="flat-item">' +
+      '<span class="flat-cat">Songs that… ' + escapeHtml(item.cat) + '</span>' +
+      '<span class="flat-by">— ' + escapeHtml(item.name) + '</span>' +
+    '</div>'
+  ).join('');
+  container.innerHTML = '<div class="flat-list">' + html + '</div>';
+}
+
+function setView(view) {
+  currentView = view;
+  document.getElementById('btn-by-person').classList.toggle('active', view === 'person');
+  document.getElementById('btn-flat').classList.toggle('active', view === 'flat');
+  if (submissions.length) render();
+}
+
+function formatTime(ts) {
+  try {
+    const d = new Date(ts);
+    const now = new Date();
+    const diff = now - d;
+    if (diff < 60000) return 'just now';
+    if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  } catch {
+    return '';
+  }
+}
+
+function exportCSV() {
+  const rows = [['Timestamp', 'Name', 'Category 1', 'Category 2', 'Category 3', 'Category 4']];
+  submissions.forEach(s => {
+    rows.push([s.timestamp, s.name, ...s.categories]);
+  });
+  const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'music-league-submissions.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// auto-load on page open
+loadData();
+</script>
+</body>
+</html>
